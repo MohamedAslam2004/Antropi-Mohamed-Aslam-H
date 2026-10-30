@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<sdf version="1.8">
+  <model name="traffic_cone">
+    <static>true</static>
+    <link name="link">
+      <!-- square base -->
+      <visual name="base">
+        <pose>0 0 0.015 0 0 0</pose>
+        <geometry><box><size>0.34 0.34 0.03</size></box></geometry>
+        <material><ambient>0.15 0.15 0.15 1</ambient><diffuse>0.15 0.15 0.15 1</diffuse></material>
+      </visual>
+      <!-- cone body -->
+      <visual name="body">
+        <pose>0 0 0.255 0 0 0</pose>
+        <geometry><cone><radius>0.14</radius><length>0.45</length></cone></geometry>
+        <material><ambient>1.0 0.4 0.0 1</ambient><diffuse>1.0 0.4 0.0 1</diffuse></material>
+      </visual>
+      <!-- the lidar sees this, so keep it simple -->
+      <collision name="collision">
+        <pose>0 0 0.25 0 0 0</pose>
+        <geometry><cylinder><radius>0.17</radius><length>0.5</length></cylinder></geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>
