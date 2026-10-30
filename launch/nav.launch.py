@@ -11,7 +11,7 @@ def generate_launch_description():
     nav2 = get_package_share_directory('nav2_bringup')
 
     # My generated map and my tuned parameters
-    map_yaml = os.path.join(pkg, 'maps', 'warehouse_small.yaml')
+    map_yaml = os.path.join(pkg, 'maps', 'loading_bay.yaml')
     params = os.path.join(pkg, 'config', 'nav2_params.yaml')
 
     bringup = IncludeLaunchDescription(
