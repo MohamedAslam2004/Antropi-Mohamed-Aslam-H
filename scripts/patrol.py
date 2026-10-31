@@ -23,7 +23,6 @@ WAYPOINTS = [
     ('south middle',           (1.5, -2.6)),
     ('centre east',            (2.4, -0.2)),
     ('north-east corner',      (4.0, 2.9)),
-    ('centre, past barrier',   (0.0, 0.9)),
     ('between pillar & crate', (-2.0, 1.2)),
     ('back to start',          SPAWN),
 ]
@@ -83,6 +82,11 @@ def main():
         nav.get_logger().warn('Patrol canceled')
     else:
         nav.get_logger().error('Patrol failed')
+    if nav.result_future and nav.result_future.result():
+       action_result=nav.result_future.result();
+        
+       nav.get_logger().error(f'Action staus:{action_result.status}')
+       nav.get_logger().error(f'Action result:{action_result.result}')
 
     if args.shutdown:
         nav.lifecycleShutdown()

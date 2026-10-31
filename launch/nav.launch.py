@@ -13,6 +13,7 @@ def generate_launch_description():
 
     map_yaml = os.path.join(pkg, 'maps', 'loading_bay.yaml')
     params = os.path.join(pkg, 'config', 'nav2_params.yaml')
+    rviz_config=os.path.join(pkg,'rviz','navigation.rviz')
 
     bringup = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -26,8 +27,11 @@ def generate_launch_description():
 
     rviz = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(nav2, 'launch', 'rviz_launch.py')))
-
+            os.path.join(nav2, 'launch', 'rviz_launch.py')),
+        launch_arguments={
+            'rviz_config': rviz_config,
+            'use_sim_time': 'true',
+        }.items())
     # In the VM, collision_monitor did not forward velocity commands, so the
     # smoothed output is relayed to /cmd_vel directly.
     relay = Node(
