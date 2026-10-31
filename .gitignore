@@ -1,3 +1,11 @@
 __pycache__/
 *.pyc
-*.bak
+*.bak*
+
+# ROS workspace output, in case the repo is cloned into a workspace root
+build/
+install/
+log/
+
+# slam_toolbox serialized sessions (large, regenerated when re-mapping)
+maps/*_session.*

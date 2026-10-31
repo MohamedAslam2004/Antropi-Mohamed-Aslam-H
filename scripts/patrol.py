@@ -1,64 +1,80 @@
 #!/usr/bin/env python3
-"""Patrol the warehouse: left room -> through the gap -> right room -> back.
+"""Patrol the loading bay by sending a list of waypoints to Nav2.
 
-Uses nav2_simple_commander, so Nav2 does all the planning and driving.
-Run from a fresh start (robot at its spawn point), or pass --keep-pose
-to skip setting the initial pose.
+Waypoints are written in Gazebo world coordinates (as in loading_bay.sdf)
+and converted to the map frame, whose origin is the robot's spawn point.
+
+Start it with the robot at its spawn point so the initial pose is correct,
+or pass --keep-pose to leave the current localization untouched.
 """
+import argparse
 import sys
 
 import rclpy
-from rclpy.duration import Duration
-from rclpy.utilities import remove_ros_args
 from geometry_msgs.msg import PoseStamped
 from nav2_simple_commander.robot_navigator import BasicNavigator, TaskResult
+from rclpy.utilities import remove_ros_args
 
 SPAWN = (-4.0, -3.0)
+WORLD_TO_MAP = (4.0, 3.0)  # map = world + WORLD_TO_MAP
 
-# (x, y) in the map frame. Chosen with clearance from walls and crates.
 WAYPOINTS = [
-    ('left room, near the partition', (-3.5, 2.0)),
-    ('gap in the partition',          (0.0, 3.0)),
-    ('right room, top',               (3.0, 3.0)),
-    ('right room, bottom',            (4.0, -3.0)),
-    ('back to start',                 SPAWN),
+    ('south-west lane',        (-2.2, -2.4)),
+    ('south middle',           (1.5, -2.6)),
+    ('centre east',            (2.4, -0.2)),
+    ('north-east corner',      (4.0, 2.9)),
+    ('centre, past barrier',   (0.0, 0.9)),
+    ('between pillar & crate', (-2.0, 1.2)),
+    ('back to start',          SPAWN),
 ]
 
 
-def make_pose(nav, x, y, yaw_w=1.0):
+def to_map(xy):
+    return xy[0] + WORLD_TO_MAP[0], xy[1] + WORLD_TO_MAP[1]
+
+
+def make_pose(nav, x, y):
     pose = PoseStamped()
     pose.header.frame_id = 'map'
     pose.header.stamp = nav.get_clock().now().to_msg()
     pose.pose.position.x = x
     pose.pose.position.y = y
-    pose.pose.orientation.w = yaw_w
+    pose.pose.orientation.w = 1.0
     return pose
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description=__doc__.split('\n')[0])
+    parser.add_argument('--keep-pose', action='store_true',
+                        help='do not set the initial pose')
+    parser.add_argument('--shutdown', action='store_true',
+                        help='shut Nav2 down when the patrol ends')
+    return parser.parse_args(remove_ros_args(sys.argv)[1:])
+
+
 def main():
-    args = remove_ros_args(sys.argv)[1:]
+    args = parse_args()
     rclpy.init()
     nav = BasicNavigator()
 
-    if '--keep-pose' not in args:
-        nav.setInitialPose(make_pose(nav, *SPAWN))
-    else:
+    if args.keep_pose:
         nav.initial_pose_received = True
+    else:
+        nav.setInitialPose(make_pose(nav, *to_map(SPAWN)))
 
     nav.waitUntilNav2Active()
     nav.get_logger().info('Nav2 is active, starting patrol')
 
-    poses = [make_pose(nav, *xy) for _, xy in WAYPOINTS]
-    nav.followWaypoints(poses)
+    nav.followWaypoints([make_pose(nav, *to_map(xy)) for _, xy in WAYPOINTS])
 
-    last = -1
+    current = -1
     while not nav.isTaskComplete():
-        fb = nav.getFeedback()
-        if fb and fb.current_waypoint != last:
-            last = fb.current_waypoint
+        feedback = nav.getFeedback()
+        if feedback and feedback.current_waypoint != current:
+            current = feedback.current_waypoint
             nav.get_logger().info(
-                'Heading to waypoint %d/%d: %s'
-                % (last + 1, len(WAYPOINTS), WAYPOINTS[last][0]))
+                f'Waypoint {current + 1}/{len(WAYPOINTS)}: '
+                f'{WAYPOINTS[current][0]}')
 
     result = nav.getResult()
     if result == TaskResult.SUCCEEDED:
@@ -68,9 +84,11 @@ def main():
     else:
         nav.get_logger().error('Patrol failed')
 
-    nav.lifecycleShutdown() if '--shutdown' in args else None
+    if args.shutdown:
+        nav.lifecycleShutdown()
     rclpy.shutdown()
+    return 0 if result == TaskResult.SUCCEEDED else 1
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

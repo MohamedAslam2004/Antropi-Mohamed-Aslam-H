@@ -1,13 +1,19 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>antropi_nav_demo</name>
-  <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="mohamed-aslam-h@todo.todo">mohamed-aslam-h</maintainer>
-  <license>TODO: License declaration</license>
+  <name>navigation</name>
+  <version>0.1.0</version>
+  <description>Nav2 waypoint patrol demo: a TurtleBot3 in a Gazebo loading-bay world.</description>
+  <maintainer email="mohamed2004aslam@gmail.com">Mohamed Aslam H</maintainer>
+  <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>nav2_bringup</exec_depend>
+  <exec_depend>nav2_simple_commander</exec_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>turtlebot3_gazebo</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

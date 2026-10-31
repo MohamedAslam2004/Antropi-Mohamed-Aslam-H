@@ -1,4 +1,5 @@
 import os
+
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription
@@ -7,10 +8,9 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    pkg = get_package_share_directory('antropi_nav_demo')
+    pkg = get_package_share_directory('navigation')
     nav2 = get_package_share_directory('nav2_bringup')
 
-    # My generated map and my tuned parameters
     map_yaml = os.path.join(pkg, 'maps', 'loading_bay.yaml')
     params = os.path.join(pkg, 'config', 'nav2_params.yaml')
 
@@ -28,10 +28,10 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             os.path.join(nav2, 'launch', 'rviz_launch.py')))
 
-    # collision_monitor never forwarded velocity in my VM, so the smoothed
-    # command goes to the robot through this small relay instead.
+    # In the VM, collision_monitor did not forward velocity commands, so the
+    # smoothed output is relayed to /cmd_vel directly.
     relay = Node(
-        package='antropi_nav_demo',
+        package='navigation',
         executable='cmd_vel_relay.py',
         name='cmd_vel_relay',
         parameters=[{'use_sim_time': True}],
